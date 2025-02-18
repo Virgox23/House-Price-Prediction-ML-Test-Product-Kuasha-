@@ -1,0 +1,136 @@
+# Load the dataset (update path if needed)
+df = pd.read_csv("/content/house_prices_data.csv")
+
+# Display the first few rows
+df.head()
+
+
+# Check for missing values
+print("Missing values:\n", df.isnull().sum())
+
+# Check data types
+print("\nData types:\n", df.dtypes)
+
+
+# Encode 'City' column using LabelEncoder
+encoder = LabelEncoder()
+df['City'] = encoder.fit_transform(df['City'])
+
+# Show unique city mappings
+city_mappings = dict(zip(encoder.classes_, encoder.transform(encoder.classes_)))
+print("\nCity Encoding Mapping:", city_mappings)
+
+
+# Define features (X) and target variable (y)
+X = df[['City', 'Size_sqft']]  # Independent Variables
+y = df['Price']  # Dependent Variable
+
+# Split into train (80%) and test (20%)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+print(f"Training samples: {len(X_train)}, Testing samples: {len(X_test)}")
+
+
+# Initialize and train Linear Regression model
+lr_model = LinearRegression()
+lr_model.fit(X_train, y_train)
+
+# Make predictions
+lr_predictions = lr_model.predict(X_test)
+
+# Initialize and train Random Forest model
+rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
+rf_model.fit(X_train, y_train)
+
+# Make predictions
+rf_predictions = rf_model.predict(X_test)
+
+
+# Define a function to calculate performance metrics
+def evaluate_model(model_name, y_true, y_pred):
+    print(f"\n🔹 {model_name} Performance:")
+    print(f"   - MAE: {mean_absolute_error(y_true, y_pred):.2f}")
+    print(f"   - MSE: {mean_squared_error(y_true, y_pred):.2f}")
+    print(f"   - RMSE: {np.sqrt(mean_squared_error(y_true, y_pred)):.2f}")
+    print(f"   - R² Score: {r2_score(y_true, y_pred):.4f}")
+
+# Evaluate both models
+evaluate_model("Linear Regression", y_test, lr_predictions)
+evaluate_model("Random Forest", y_test, rf_predictions)
+
+# Scatter plot of actual vs. predicted values
+plt.figure(figsize=(12, 6))
+
+plt.subplot(1, 2, 1)
+plt.scatter(y_test, lr_predictions, color="blue", alpha=0.6, label="Predicted Price")
+plt.scatter(y_test, y_test, color="red", alpha=0.6, label="Actual Price")
+plt.plot(y_test, y_test, color="black", linestyle="dashed")
+plt.title("Linear Regression Predictions")
+plt.xlabel("Actual Price")
+plt.ylabel("Predicted Price")
+
+plt.subplot(1, 2, 2)
+plt.scatter(y_test, rf_predictions, color="blue", alpha=0.6, label="Predicted Price")
+plt.scatter(y_test, y_test, color="red", alpha=0.6, label="Actual Price")
+plt.plot(y_test, y_test, color="black", linestyle="dashed")
+plt.title("Random Forest Predictions")
+plt.xlabel("Actual Price")
+plt.ylabel("Predicted Price")
+
+plt.show()
+
+
+# Example input (update these values)
+new_data = pd.DataFrame({
+    'City': [city_mappings.get('New York', 0)],  # Change 'New York' to a real city in your dataset
+    'Size_sqft': [1500]  # Example size
+})
+
+# Predict using both models
+lr_new_pred = lr_model.predict(new_data)
+rf_new_pred = rf_model.predict(new_data)
+
+print(f"\n🔹 Predicted House Price using Linear Regression: ${lr_new_pred[0]:,.2f}")
+print(f"🔹 Predicted House Price using Random Forest: ${rf_new_pred[0]:,.2f}")
+
+# ---------------------- Step 3: Create Web App with Gradio ----------------------
+def predict_price(city, size_sqft, model_type):
+    # Convert city name to numerical encoding
+    city_encoded = encoder.transform([city])[0]
+
+    # Create input array
+    input_data = np.array([[city_encoded, size_sqft]])
+
+    # Choose model
+    if model_type == "Linear Regression":
+        prediction = lr_model.predict(input_data)[0]
+    else:
+        prediction = rf_model.predict(input_data)[0]
+
+    return f"Predicted House Price: ${prediction:,.2f}"
+
+    # Create Gradio UI
+iface = gr.Interface(
+    fn=predict_price,
+    inputs=[
+        gr.Dropdown(encoder.classes_.tolist(), label="Select City"),
+        gr.Number(label="Enter House Size (sqft)"),
+        gr.Radio(["Linear Regression", "Random Forest"], label="Choose Model")
+    ],
+    outputs=gr.Textbox(label="Prediction"),
+    title="Kuasha's House Price Prediction App",
+    description="Enter city and house size to predict the price using Linear Regression or Random Forest."
+)
+
+# ---------------------- Step 4: Deploy App in Flask & Ngrok ----------------------
+app = Flask(__name__)
+run_with_ngrok(app)  # Allows public access to the web app
+
+@app.route("/")
+def home():
+    return iface.launch(share=True)  # Creates a public link
+
+if __name__ == "__main__":
+    app.run()
+
+
