@@ -1,0 +1,32 @@
+Missing values:
+ City         0
+Size_sqft    0
+Price        0
+dtype: int64
+
+Data types:
+ City         object
+Size_sqft     int64
+Price         int64
+dtype: object
+
+City Encoding Mapping: {'Chicago': 0, 'Houston': 1, 'Los Angeles': 2, 'New York': 3, 'Phoenix': 4}
+Training samples: 80, Testing samples: 20
+
+🔹 Linear Regression Performance:
+   - MAE: 301875.57
+   - MSE: 111027133184.24
+   - RMSE: 333207.34
+   - R² Score: -0.1725
+
+🔹 Random Forest Performance:
+   - MAE: 310040.12
+   - MSE: 149063116243.76
+   - RMSE: 386086.93
+   - R² Score: -0.5741
+
+#(Performance graph couldn't be provided. It'll be available in the short future.)
+
+
+🔹 Predicted House Price using Linear Regression: $434,973.88
+🔹 Predicted House Price using Random Forest: $219,610.12
