@@ -1,4 +1,4 @@
-# **Machine Learning Project**
+# **Machine Learning Project-1**
 
 ## **Project Overview**
 This project is a sample machine learning project developed as part of the **Machine Learning Professional Course** offered by **UNICORNS CODES** in collaboration with the **Bangladesh Hi-Tech Park Authority**. It serves as a hands-on learning experience to apply theoretical concepts to a real-world problem using Python, datasets from Kaggle, and tools like Google Colab and Visual Studio Code.
